@@ -1,0 +1,41 @@
+Package: nwb2020
+Title: The effect of incentivising specific publication patterns
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Henrik",
+           family = "Karlstrøm",
+           role = c("aut", "cre"),
+           email = "henrik.karlstrom@ntnu.no",
+           comment = c(ORCID = "0000-0002-9942-4326"))
+Description: Funding of Norwegian research institutions is partly tied to the 
+scientific publication output of the institution. The so-called 
+results-based funding mechanism was originally designed to 
+incentivise publishing in top publication channels, but has been 
+criticised for giving preference to fields where single-author 
+publications are the norm.
+
+In 2015, two changes were introduced: one with the intention to 
+increase recognition of contributions to multiple-author publications 
+and the other to stimulate increased international co-authorship. 
+While this has led to a levelling of funding across scientific 
+fields by virtue of the design of the multi-authorship indicator 
+it is more uncertain whether the incentive for internationalisation 
+has had any noticeable effect. International co-authorship had been 
+steadily increasing in the years leading up to the policy change and 
+has followed a linear trend since.
+
+This paper uses interrupted time series analysis to estimate the 
+effect of the internationalisation component of the funding 
+mechanism. The analysis combines trend decomposition with a 
+comparative analysis of the international co-authorship trends in 
+other Nordic countries which have similar publication funding 
+mechanisms but did not introduce an internationalisation modifier 
+at the time Norway introduced the change. The result will offer 
+insights into the merit of designing highly specific incentives 
+for publication activities.
+
+License: CC BY 4.0
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
