@@ -1,6 +1,10 @@
 # This script reads in publication data and model 
-# predictions and produces plots of the times series,
-# its decomposition and prediction fits.
+# predictions and produces plots of: 
+#   1)  the times series, its decomposition and 
+#       prediction fits.
+#   2)  cross-country international co-publication
+#   3)  the redistribution effects of the 
+#       internationalisation factor.
 
 
 ## SETUP ##
@@ -25,6 +29,8 @@ actual_data <- read_csv("./processed_data/coop_share.csv") %>%
 
 series_components <- readRDS("./processed_data/model_stl.rds") %>%
   components()
+
+coop_data <- readRDS("./processed_data/dimensions_data.rds")
 
 ## Initial trend plot ##
 actual_data %>%
@@ -222,3 +228,37 @@ actual_data %>%
 
 # Save plot
 ggsave("./plots/pred_vs_truth.png", scale = 1, width = 8)
+
+
+## Cross-country plot
+coop_data %>%
+  mutate(coop_share = int_coop / all_pubs) %>%
+  ggplot(aes(x = id, y = coop_share, color = country)) +
+  geom_line(size = 1.1, alpha = 0.7) +
+  scale_y_continuous(
+    limits = c(0,1),
+    labels = scales::percent_format()
+  ) +
+  scale_x_continuous(breaks = seq(2011,2019,1)) +
+  scale_color_manual(
+    values = c("#28585a", "#aad9dd", "#f7d019", "#c9d755")
+    ) +
+  theme_minimal() +
+  labs(
+    x = NULL,
+    y = NULL,
+    color = NULL,
+    title = "No discernible difference between countries",
+    subtitle = "Yearly international co-publication share",
+    caption = "Source: Dimensions"
+    ) +
+  theme(
+    axis.title.y = element_text(family = "Open Sans"),
+    axis.text = element_text(family = "Open Sans"),
+    plot.title = element_text(family = "Open Sans"),
+    plot.subtitle = element_text(family = "Open Sans"),
+    plot.title.position = "plot",
+    legend.position = "bottom"
+  )
+
+ggsave("./plots/cross_country.png", scale = 1, width = 8)
