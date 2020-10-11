@@ -88,6 +88,10 @@ model_def <- model_window %>%
       )
     )
 
+# Save the model and time series decomposition for plotting
+saveRDS(model_def, "./processed_data/model_stl.rds")
+
+
 # A forecast is made and probability intervals computed
 model_fc <- model_def %>%
   forecast(h = "3 years") %>%
@@ -97,7 +101,8 @@ model_fc <- model_def %>%
     ) %>%
   unpack_hilo(cols = c(interval80, interval95))
 
-# Finally, save the model as an R object for use in plotting
+# Finally, save the forecast results as an R object for 
+# use in plotting.
 saveRDS(
   object = model_fc, 
   file = "./processed_data/ts_model.rds"
