@@ -63,3 +63,12 @@ query_dimensions <- function(query, token = NULL){
   return(post_query)
   
 }
+
+
+#' Parse query result
+fetch_results <- function(query, token){
+  df <- query_dimensions(query = query, token = token)
+  df <- jsonlite::fromJSON(httr::content(df, "text", encoding = "UTF-8"))
+  
+  return(df)
+}
