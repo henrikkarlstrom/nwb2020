@@ -2,16 +2,18 @@
 # predictions and produces plots of: 
 #   1)  the times series, its decomposition and 
 #       prediction fits.
-#   2)  cross-country international co-publication
+#   2)  cross-country international co-publication shares
 #   3)  the redistribution effects of the 
 #       internationalisation factor.
 
 
 ## SETUP ##
 
-# Required library
+# Required libraries
 library(tidyverse)
 library(fable)
+library(tsibble)
+library(lubridate)
 
 # Load in data
 nvi_model <- readRDS("./processed_data/ts_model.rds") %>%
@@ -31,6 +33,11 @@ series_components <- readRDS("./processed_data/model_stl.rds") %>%
   components()
 
 coop_data <- readRDS("./processed_data/dimensions_data.rds")
+
+points <- read_csv2("./raw_data/points_model.csv")
+
+
+## 1) PLOTTING THE TIME SERIES WITH  DECOMPOSITION ##
 
 ## Initial trend plot ##
 actual_data %>%
@@ -230,6 +237,8 @@ actual_data %>%
 ggsave("./plots/pred_vs_truth.png", scale = 1, width = 8)
 
 
+## 2) COMPARISON CHART WITH OTHER NORDIC COUNTRIES
+
 ## Cross-country plot
 coop_data %>%
   mutate(coop_share = int_coop / all_pubs) %>%
@@ -249,16 +258,95 @@ coop_data %>%
     y = NULL,
     color = NULL,
     title = "No discernible difference between countries",
-    subtitle = "Yearly international co-publication share",
-    caption = "Source: Dimensions"
+    subtitle = "Yearly international co-publication share"
     ) +
+  guides(color = guide_legend(ncol = 2)) +
   theme(
     axis.title.y = element_text(family = "Open Sans"),
     axis.text = element_text(family = "Open Sans"),
     plot.title = element_text(family = "Open Sans"),
     plot.subtitle = element_text(family = "Open Sans"),
     plot.title.position = "plot",
-    legend.position = "bottom"
+    legend.position = c(0.7, 1.1)
   )
 
 ggsave("./plots/cross_country.png", scale = 1, width = 8)
+
+
+## 3) REDISTRIBUTION MODEL ##
+
+# scientific area redistribution
+points %>%
+  mutate(
+    adjusted_points = if_else(
+      international_cooperation == "Ja",
+      publication_points / 1.3,
+      publication_points
+    ),
+    scientific_area_npi = recode(
+      scientific_area_npi,
+      "Humaniora" = "Humanities",
+      "Medisin og helsefag" = "Health sciences",
+      "Realfag og teknologi" = "STEM fields",
+      "Samfunnsvitenskap" = "Social Sciences"
+    )
+  ) %>% 
+  group_by(year_reported, scientific_area_npi) %>%
+  summarise(
+    current_points = sum(publication_points),
+    adjusted_points = sum(adjusted_points)
+  ) %>% 
+  ungroup() %>%
+  group_by(year_reported) %>%
+  mutate(
+    current_share = current_points / sum(current_points),
+    adjusted_share = adjusted_points / sum(adjusted_points)
+  ) %>% 
+  ungroup() %>%
+  left_join(
+    tibble(
+      year_reported = c(2017, 2018, 2019), 
+      sum = c(582270000, 600903000, 620132000)
+    ),
+    by = "year_reported"
+  ) %>% 
+  mutate(
+    current_sum = current_share * sum,
+    adjusted_sum = adjusted_share * sum,
+    grant_diff = current_sum - adjusted_sum,
+    scientific_area_npi = fct_reorder(scientific_area_npi, grant_diff)
+  ) %>%
+  group_by(scientific_area_npi) %>%
+  summarise(grant_diff = sum(grant_diff)) %>%
+  ggplot(
+    aes(
+      x = grant_diff, 
+      y = scientific_area_npi,
+      fill = scientific_area_npi
+      )
+    ) +
+  geom_col(show.legend = FALSE) +
+  scale_x_continuous(
+    limits = c(-2e7, 2e7),
+    labels = scales::label_number_si()
+    ) +
+  scale_fill_manual(
+    values = c("#28585a", "#aad9dd", "#f7d019", "#c9d755")
+  ) +
+  labs(
+    x = NULL,
+    y = NULL,
+    title = "Monetary effect of the reform",
+    subtitle = "Grants difference due to internationalisation factor, million NOK"
+    ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_text(family = "Open Sans"),
+    axis.text = element_text(family = "Open Sans"),
+    plot.title = element_text(family = "Open Sans"),
+    plot.subtitle = element_text(family = "Open Sans"),
+    plot.title.position = "plot"
+  )
+
+# save the plot
+ggsave("./plots/grant_diff_area.png", scale = 1, width = 8)
