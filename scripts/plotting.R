@@ -144,7 +144,6 @@ series_components %>%
     labels = scales::percent_format(),
     expand = c(0,0)
   ) +
-  scale_x_yearmonth(date_breaks = "1 year") +
   labs(
     x = NULL, 
     y = NULL,
