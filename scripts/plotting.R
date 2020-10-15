@@ -15,6 +15,9 @@ library(fable)
 library(tsibble)
 library(lubridate)
 
+# Register fonts
+windowsFonts("Open Sans" = "Open sans")
+
 # Load in data
 nvi_model <- readRDS("./processed_data/ts_model.rds") %>%
   index_by(month = yearmonth(date)) %>%
@@ -41,10 +44,9 @@ points <- read_csv2("./raw_data/points_model.csv")
 
 ## Initial trend plot ##
 actual_data %>%
-  as_tibble() %>%
-  group_by(month = yearmonth(date)) %>%
+  index_by(month = yearmonth(date)) %>%
   summarise(coop_share = mean(coop_share)) %>%
-  filter(year(month) < 2017) %>%
+  filter_index(~ "2017 Jan") %>%
   ggplot(aes(x = month, y = coop_share)) +
   geom_line(color = "#565657", alpha = 0.7) +
   theme_minimal() +
@@ -72,11 +74,9 @@ ggsave("./plots/initial_trend.png", scale = 1, width = 8)
 
 ## Initial trend plot with smoothing ##
 actual_data %>%
-  as_tibble() %>%
-  group_by(month = yearmonth(date)) %>%
+  index_by(month = yearmonth(date)) %>%
   summarise(coop_share = mean(coop_share)) %>%
-  ungroup() %>%
-  filter(year(month) < 2017) %>%
+  filter_index(~ "2017 Jan") %>%
   ggplot(aes(x = month, y = coop_share)) +
   geom_line(color = "#565657", alpha = 0.7) +
   geom_smooth(
@@ -109,7 +109,7 @@ actual_data %>%
 
 # Save plot
 ggsave(
-  filename = "./plots/initial_trend_smooth.png",
+  filename = "./plots/initial_trend_smooth.png", 
   scale = 1,
   width = 8
   )
